@@ -155,6 +155,7 @@ set(SRC
   nodes/node_geo_instances_to_points.cc
   nodes/node_geo_interpolate_curves.cc
   nodes/node_geo_is_viewport.cc
+  nodes/node_geo_isotropic_remesh.cc
   nodes/node_geo_join_bundle.cc
   nodes/node_geo_join_geometry.cc
   nodes/node_geo_list.cc

@@ -6,6 +6,7 @@ set(INC
   PUBLIC .
   ../makesrna
   ../../../intern/eigen
+  ../../../extern/isotropicremesher/src
 )
 
 set(INC_SYS
@@ -21,6 +22,7 @@ set(SRC
   intern/fit_curves.cc
   intern/foreach_geometry.cc
   intern/interpolate_curves.cc
+  intern/isotropic_remesh.cc
   intern/join_geometries.cc
   intern/merge_curves.cc
   intern/merge_layers.cc
@@ -66,6 +68,7 @@ set(SRC
   GEO_fit_curves.hh
   GEO_foreach_geometry.hh
   GEO_interpolate_curves.hh
+  GEO_isotropic_remesh.hh
   GEO_join_geometries.hh
   GEO_merge_curves.hh
   GEO_merge_layers.hh
@@ -114,6 +117,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::curve_fit_nd
+  PRIVATE bf::extern::isotropicremesher
   PRIVATE bf::dependencies::optional::manifold
 )
 
@@ -148,6 +152,7 @@ if(WITH_GTESTS)
   )
   set(TEST_SRC
     tests/GEO_interpolate_curves_test.cc
+    tests/GEO_isotropic_remesh_test.cc
     tests/GEO_merge_curves_test.cc
     tests/GEO_realize_instances_test.cc
   )

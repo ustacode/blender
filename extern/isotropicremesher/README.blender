@@ -1,0 +1,25 @@
+Project: Isotropic Remesher
+URL: https://github.com/huxingyi/isotropicremesher
+License: MIT (see LICENSE)
+Upstream commit: d4674ce63288d7a55a70735181049895aebc3bf7
+
+This is a vendored copy of the isotropic remesher by Jeremy HU. It implements the
+five-step isotropic remeshing pipeline (split long edges, collapse short edges, flip
+edges, tangential relaxation, project to surface).
+
+Local modifications (all tagged with the comment "BLENDER MODIFICATION"):
+  * src/isotropicremesher.h / .cpp
+      - Added IsotropicRemesher::setPreserveBoundaries(bool) so callers can choose whether
+        open boundary edges are pinned as features.
+      - Added an optional progress/cancellation callback argument to
+        IsotropicRemesher::remesh(); returning false from the callback stops the loop early
+        while leaving the mesh in a valid state.
+
+Files intentionally NOT vendored:
+  * test/ (upstream unit test harness and sample .obj models)
+  * README.md, .gitignore
+
+Only the headers and translation units required to build the remesher are included, plus
+the upstream LICENSE. The build glue lives in CMakeLists.txt. The reusable Blender-facing
+wrapper that converts to and from Blender's Mesh lives in
+source/blender/geometry/intern/isotropic_remesh.cc.
