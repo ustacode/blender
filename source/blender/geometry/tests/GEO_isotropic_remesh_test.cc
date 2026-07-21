@@ -2,9 +2,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <algorithm>
 #include <array>
+#include <cfloat>
 
 #include "BLI_bounds.hh"
+#include "BLI_math_base.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -16,6 +19,7 @@
 #include "DNA_mesh_types.h"
 
 #include "GEO_isotropic_remesh.hh"
+#include "GEO_mesh_primitive_cuboid.hh"
 #include "GEO_mesh_primitive_grid.hh"
 #include "GEO_mesh_primitive_uv_sphere.hh"
 
@@ -166,6 +170,53 @@ TEST_F(IsotropicRemeshTest, BoundaryPreservation)
 
   BKE_id_free(nullptr, result);
   BKE_id_free(nullptr, grid);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Sharp edges/corners of a cube are kept when sharp-edge preservation is on. */
+
+TEST_F(IsotropicRemeshTest, SharpEdgePreservation)
+{
+  Mesh *cube = create_cuboid_mesh(float3(2, 2, 2), 2, 2, 2);
+  const Bounds<float3> src_bounds = *bounds::min_max(cube->vert_positions());
+
+  IsotropicRemeshParams params;
+  params.target_edge_length = 0.2f;
+  params.iterations = 10;
+  params.preserve_sharp_edges = true;
+  params.sharp_angle = DEG2RADF(30.0f);
+  Mesh *result = isotropic_remesh(*cube, params);
+  ASSERT_NE(result, nullptr);
+  EXPECT_TRUE(all_faces_are_triangles(*result));
+
+  /* With the 12 sharp edges pinned, the cube's extent (its 8 corners) must be preserved;
+   * without the fix the corners round inward and the bounding box shrinks noticeably. */
+  const Bounds<float3> dst_bounds = *bounds::min_max(result->vert_positions());
+  for (const int axis : IndexRange(3)) {
+    EXPECT_NEAR(dst_bounds.min[axis], src_bounds.min[axis], 0.05f);
+    EXPECT_NEAR(dst_bounds.max[axis], src_bounds.max[axis], 0.05f);
+  }
+
+  /* Each of the 8 corners must still be hit by an output vertex. */
+  const Span<float3> out_positions = result->vert_positions();
+  const std::array<float3, 8> corners = {float3(-1, -1, -1),
+                                         float3(1, -1, -1),
+                                         float3(-1, 1, -1),
+                                         float3(1, 1, -1),
+                                         float3(-1, -1, 1),
+                                         float3(1, -1, 1),
+                                         float3(-1, 1, 1),
+                                         float3(1, 1, 1)};
+  for (const float3 &corner : corners) {
+    float nearest = FLT_MAX;
+    for (const float3 &p : out_positions) {
+      nearest = std::min(nearest, math::distance(p, corner));
+    }
+    EXPECT_LT(nearest, 0.1f) << "cube corner was not preserved";
+  }
+
+  BKE_id_free(nullptr, result);
+  BKE_id_free(nullptr, cube);
 }
 
 /* -------------------------------------------------------------------------- */

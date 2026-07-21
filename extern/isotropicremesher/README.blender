@@ -11,9 +11,15 @@ Local modifications (all tagged with the comment "BLENDER MODIFICATION"):
   * src/isotropicremesher.h / .cpp
       - Added IsotropicRemesher::setPreserveBoundaries(bool) so callers can choose whether
         open boundary edges are pinned as features.
+      - Added IsotropicRemesher::setSharpEdgeThresholdRadians(double) to set the sharp-edge
+        threshold directly in Blender's face-normal-angle convention.
       - Added an optional progress/cancellation callback argument to
         IsotropicRemesher::remesh(); returning false from the callback stops the loop early
         while leaving the mesh in a valid state.
+      - Restored the feature-vertex guards that upstream had commented out: feature (sharp /
+        boundary) vertices are no longer tangentially relaxed (shiftVertices) and edges touching
+        a feature vertex are no longer flipped (flipEdges). Without these, detected sharp edges
+        were still rounded away, defeating the "Preserve Sharp Edges" option.
 
 Files intentionally NOT vendored:
   * test/ (upstream unit test harness and sample .obj models)

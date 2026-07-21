@@ -232,11 +232,13 @@ void IsotropicRemesher::flipEdges()
         do {
             const auto &nextHalfedge = halfedge->nextHalfedge;
             if (nullptr != halfedge->oppositeHalfedge) {
-                //if (!halfedge->startVertex->featured && !nextHalfedge->startVertex->featured) {
+                /* BLENDER MODIFICATION: never flip an edge that touches a feature (sharp or
+                 * boundary) vertex, otherwise the crease topology is destroyed. */
+                if (!halfedge->startVertex->featured && !nextHalfedge->startVertex->featured) {
                     if (m_halfedgeMesh->flipEdge(halfedge)) {
                         break;
                     }
-                //}
+                }
             }
             halfedge = nextHalfedge;
         } while (halfedge != startHalfedge);
@@ -252,8 +254,10 @@ void IsotropicRemesher::shiftVertices()
     for (IsotropicHalfedgeMesh::Vertex *vertex = m_halfedgeMesh->moveToNextVertex(nullptr); 
             nullptr != vertex;
             vertex = m_halfedgeMesh->moveToNextVertex(vertex)) {
-        //if (vertex->featured)
-        //    continue;
+        /* BLENDER MODIFICATION: keep feature (sharp / boundary) vertices pinned so tangential
+         * relaxation cannot pull them off the crease and round it away. */
+        if (vertex->featured)
+            continue;
         m_halfedgeMesh->relaxVertex(vertex);
     }
 }
